@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -127,6 +128,12 @@ public class EventDevice implements IEventDevice{
 	 */
 	private Thread readerThread;
 	
+	private short[] idResponse = new short[4];
+
+	private int evdevVersionResponse;
+
+	private String deviceNameResponse;
+	
 	/**
 	 * Create an EventDevice by connecting to the provided device filename.
 	 * If the device file is accessible, open it and begin listening for events. 
@@ -134,16 +141,31 @@ public class EventDevice implements IEventDevice{
 	 * @throws IOException If the device is not found, or is otherwise inaccessible.
 	 */
 	public EventDevice(String device) throws IOException {
+		System.loadLibrary("evdev-java");
 		this.device = device;
 		inputBuffer.order(ByteOrder.LITTLE_ENDIAN);
 		initDevice();
 	}
 	
 	/**
-	 * Open the file, get the channel, and start the reader thread.
+	 * Get various ID info. Then, open the file, get the channel, and start the reader thread.
 	 * @throws IOException
 	 */
 	private void initDevice() throws IOException {
+		
+		if(!ioctlGetID(device, idResponse)) {
+			System.err.println("WARN: couldn't get device ID: "+device);
+			Arrays.fill(idResponse, (short)0);
+		}
+		evdevVersionResponse = ioctlGetEvdevVersion(device);
+		byte[] devName = new byte[255];
+		if(ioctlGetDeviceName(device, devName, devName.length)) {
+			deviceNameResponse = new String(devName);
+		} else {
+			System.err.println("WARN: couldn't get device name: "+device);
+			deviceNameResponse = "Unknown Device";
+		}
+		
 		FileInputStream fis = new FileInputStream(device);
 		deviceInput = fis.getChannel();
 		
@@ -216,8 +238,7 @@ public class EventDevice implements IEventDevice{
 	 */
 	@Override
 	public short getBusID() {
-		// TODO Auto-generated method stub
-		return 0;
+		return idResponse[InputEvent.ID_BUS];
 	}
 
 	/**
@@ -225,8 +246,7 @@ public class EventDevice implements IEventDevice{
 	 */
 	@Override
 	public String getDeviceName() {
-		// TODO Auto-generated method stub
-		return null;
+		return deviceNameResponse;
 	}
 
 	/**
@@ -235,7 +255,7 @@ public class EventDevice implements IEventDevice{
 	@Override
 	public short getProductID() {
 		// TODO Auto-generated method stub
-		return 0;
+		return idResponse[InputEvent.ID_PRODUCT];
 	}
 
 	/**
@@ -252,8 +272,7 @@ public class EventDevice implements IEventDevice{
 	 */
 	@Override
 	public short getVendorID() {
-		// TODO Auto-generated method stub
-		return 0;
+		return idResponse[InputEvent.ID_VENDOR];
 	}
 
 	/**
@@ -261,8 +280,7 @@ public class EventDevice implements IEventDevice{
 	 */
 	@Override
 	public int getEvdevVersion() {
-		// TODO Auto-generated method stub
-		return 0;
+		return evdevVersionResponse;
 	}
 
 	/**
@@ -270,8 +288,7 @@ public class EventDevice implements IEventDevice{
 	 */
 	@Override
 	public short getVersionID() {
-		// TODO Auto-generated method stub
-		return 0;
+		return idResponse[InputEvent.ID_VERSION];
 	}
 
 	/**
@@ -294,4 +311,9 @@ public class EventDevice implements IEventDevice{
 		}
 	}
 	
+	
+	////BEGIN JNI METHODS////
+	private native boolean ioctlGetID(String device, short[] resp);
+	private native int ioctlGetEvdevVersion(String device);
+	private native boolean ioctlGetDeviceName(String device, byte[] resp, int len);
 }
