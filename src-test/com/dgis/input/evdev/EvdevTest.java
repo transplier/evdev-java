@@ -1,6 +1,8 @@
 package com.dgis.input.evdev;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -55,6 +57,8 @@ public class EvdevTest {
 			}
 		}
 		
+		System.out.println("Hit enter to quit.");
+		
 		dev.addListener(new InputListener() {
 			@Override
 			public void event(InputEvent e) {
@@ -62,5 +66,9 @@ public class EvdevTest {
 			}
 		});
 		
+		//Wait for newline.
+		new BufferedReader(new InputStreamReader(System.in)).readLine();
+		
+		dev.close();
 	}
 }
