@@ -29,6 +29,7 @@ import java.util.Map;
 
 /**
  * Represents a connection to a Linux Evdev device.
+ * For additional info, see input/input.txt and input/input-programming.txt in the Linux kernel Documentation.
  *
  * Copyright (C) 2009 Giacomo Ferrari
  * @author Giacomo Ferrari
