@@ -30,7 +30,8 @@ import java.util.Map;
 /**
  * Represents a connection to a Linux Evdev device.
  * For additional info, see input/input.txt and input/input-programming.txt in the Linux kernel Documentation.
- *
+ * IMPORTANT: If you want higher-level access for your joystick/pad/whatever, check com.dgis.input.evdev.devices
+ * for useful drivers to make your life easier!
  * Copyright (C) 2009 Giacomo Ferrari
  * @author Giacomo Ferrari
  */
