@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 /*
  * Copyright (C) 2009 Giacomo Ferrari
  * This file is part of evdev-java.
@@ -69,6 +71,13 @@ interface IEventDevice {
 	public Map<Integer, List<Integer>> getSupportedEvents();
 	
 	/**
+	 * Obtains the configurable parameters of an absolute axis (value, min, max, fuzz, flatspot) from the device. 
+	 * @param axis The axis number (an event code under event type 3 (abs)).
+	 * @return The parameters, or null if there was an error. Modifications to this object will be reflected in the device.
+	 */
+	public InputAxisParameters getAxisParameters(int axis);
+	
+	/**
 	 * Adds an event listener to this device.
 	 * When an event is received from Evdev, all InputListeners registered
 	 * will be notified by a call to event().
@@ -109,7 +118,7 @@ public class EventDevice implements IEventDevice{
 	/**
 	 * Device filename we're using.
 	 */
-	private String device;
+	String device;
 	
 	/**
 	 * Attached to device we're using.
@@ -134,7 +143,16 @@ public class EventDevice implements IEventDevice{
 
 	private String deviceNameResponse;
 	
+	/**
+	 * Maps supported event types (keys) to lists of supported event codes.
+	 */
 	private HashMap<Integer, List<Integer>> supportedEvents = new HashMap<Integer, List<Integer>>();
+	
+	
+	/**
+	 * Ensures only one instance of InputAxisParameters is created for each axis (more would be wasteful). 
+	 */
+	private HashMap<Integer, InputAxisParameters> axisParams = new HashMap<Integer, InputAxisParameters>();
 	
 	/**
 	 * Create an EventDevice by connecting to the provided device filename.
@@ -192,26 +210,23 @@ public class EventDevice implements IEventDevice{
 	 * Adapted from evtest.c.
 	 */
 	private void readSupportedEvents() {
-		System.out.println("Detecting device capabilities...");
+		//System.out.println("Detecting device capabilities...");
 		long[][] bit = new long[InputEvent.EV_MAX][NBITS(InputEvent.KEY_MAX)];
-		int[] abs = new int[5];
-		String[] absval = new String[]{ "Value", "Min  ", "Max  ", "Fuzz ", "Flat " };
 		ioctlEVIOCGBIT(device, bit[0], 0, bit[0].length);
+		/* Loop over event types */
 		for (int i = 0; i < InputEvent.EV_MAX; i++) {
-			if (testBit(bit[0], i)) {
-				System.out.printf("  Event type %d\n", i);
+			if (testBit(bit[0], i)) { /* Is this event supported? */
+				//System.out.printf("  Event type %d\n", i);
 				if (i==0) continue;
+				ArrayList<Integer> supportedTypes = new ArrayList<Integer>();
 				ioctlEVIOCGBIT(device, bit[i], i, InputEvent.KEY_MAX);
+				/* Loop over event codes for type */
 				for (int j = 0; j < InputEvent.KEY_MAX; j++) 
-					if (testBit(bit[i], j)) {
-						System.out.printf("    Event code %d\n", j);
-						if (i == InputEvent.EV_ABS) {
-							ioctlEVIOCGABS(device, abs, j);
-							for (int k = 0; k < 5; k++)
-								if ((k < 3) || (abs[k]!=0))
-									System.out.printf("      %s %6d\n", absval[k], abs[k]);
-						}
+					if (testBit(bit[i], j)) { /* Is this event code supported? */
+						//System.out.printf("    Event code %d\n", j);
+						supportedTypes.add(j);
 					}
+				supportedEvents.put(i, supportedTypes);
 			}
 		}
 	}
@@ -336,6 +351,16 @@ public class EventDevice implements IEventDevice{
 		return idResponse[InputEvent.ID_VERSION];
 	}
 
+	@Override
+	public InputAxisParameters getAxisParameters(int axis) {
+		InputAxisParameters params;
+		if((params = axisParams.get(axis)) == null) {
+			params = new InputAxisParametersImpl(this, axis); 
+			axisParams.put(axis, params);
+		}
+		return params;
+	}
+
 	/**
 	 * @see com.dgis.input.evdev.IEventDevice#addListener(com.dgis.input.evdev.InputListener)
 	 */
@@ -358,9 +383,98 @@ public class EventDevice implements IEventDevice{
 	
 	
 	////BEGIN JNI METHODS////
-	private native boolean ioctlGetID(String device, short[] resp);
-	private native int ioctlGetEvdevVersion(String device);
-	private native boolean ioctlGetDeviceName(String device, byte[] resp);
-	private native boolean ioctlEVIOCGBIT(String device, long[] resp, int start, int stop);
-	private native boolean ioctlEVIOCGABS(String device, int[] resp, int axis);
+	native boolean ioctlGetID(String device, short[] resp);
+	native int ioctlGetEvdevVersion(String device);
+	native boolean ioctlGetDeviceName(String device, byte[] resp);
+	native boolean ioctlEVIOCGBIT(String device, long[] resp, int start, int stop);
+	native boolean ioctlEVIOCGABS(String device, int[] resp, int axis);
+}
+
+class InputAxisParametersImpl implements InputAxisParameters{
+
+	private EventDevice device;
+	private int axis;
+	
+	private int value, min, max, fuzz, flat;
+	
+	public InputAxisParametersImpl(EventDevice device, int axis) {
+		this.device = device;
+		this.axis = axis;
+		readStatus();
+	}
+	
+	/**
+	 * Repopulate values stored in this class with values read from the device. 
+	 */
+	private void readStatus() {
+		int[] resp = new int[5];
+		device.ioctlEVIOCGABS(device.device, resp, axis);
+		value = resp[0];
+		min = resp[1];
+		max = resp[2];
+		fuzz = resp[3];
+		flat = resp[4];
+	}
+	
+	/**
+	 * Repopulate values stored in the device with values read from this class. 
+	 */
+	private void writeStatus() {
+		throw new NotImplementedException();
+	}
+
+	public int getValue() {
+		readStatus();
+		return value;
+	}
+
+	public void setValue(int value) {
+		this.value = value;
+		writeStatus();
+	}
+
+	public int getMin() {
+		readStatus();
+		return min;
+	}
+
+	public void setMin(int min) {
+		this.min = min;
+		writeStatus();
+	}
+
+	public int getMax() {
+		readStatus();
+		return max;
+	}
+
+	public void setMax(int max) {
+		this.max = max;
+		writeStatus();
+	}
+
+	public int getFuzz() {
+		readStatus();
+		return fuzz;
+	}
+
+	public void setFuzz(int fuzz) {
+		this.fuzz = fuzz;
+		writeStatus();
+	}
+
+	public int getFlat() {
+		readStatus();
+		return flat;
+	}
+
+	public void setFlat(int flat) {
+		this.flat = flat;
+		writeStatus();
+	}
+
+	@Override
+	public String toString() {
+		return "Value: "+getValue()+ " Min: "+getMin()+ " Max: "+getMax()+" Fuzz: "+getFuzz()+" Flat: "+getFlat();
+	}
 }

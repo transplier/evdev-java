@@ -53,7 +53,10 @@ public class EvdevTest {
 		for(Entry<Integer, List<Integer>> e : dev.getSupportedEvents().entrySet()) {
 			System.out.println("Event type "+e.getKey()+" :");
 			for(int ev : e.getValue()) {
-				System.out.println("\t"+ev);
+				System.out.println("\tEvent code "+ev);
+				if(e.getKey() == InputEvent.EV_ABS) {
+					System.out.println("\t\t"+dev.getAxisParameters(ev));
+				}
 			}
 		}
 		
