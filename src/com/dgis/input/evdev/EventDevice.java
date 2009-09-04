@@ -382,6 +382,10 @@ public class EventDevice implements IEventDevice{
 	}
 	
 	
+	public String getDevicePath() {
+		return device;
+	}
+
 	////BEGIN JNI METHODS////
 	native boolean ioctlGetID(String device, short[] resp);
 	native int ioctlGetEvdevVersion(String device);

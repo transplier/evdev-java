@@ -116,9 +116,9 @@ public class EvdevJoystickFilter implements InputListener {
 		
 		for(JoystickListener l : listeners) {
 			if(anyButtonChanged)
-				l.buttonChanged(buttonChanged, state);
+				l.buttonChanged(buttonChanged, state, device.getDevicePath());
 			if(anyAxisChanged)
-				l.joystickMoved(axisChanged, state);
+				l.joystickMoved(axisChanged, state, device.getDevicePath());
 		}
 		
 		Arrays.fill(axisChanged, false);

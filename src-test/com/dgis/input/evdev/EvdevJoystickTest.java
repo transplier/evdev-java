@@ -48,14 +48,14 @@ public class EvdevJoystickTest {
 		dev.addListener(new JoystickListener() {
 			@Override
 			public void buttonChanged(boolean[] buttonsChanged,
-					JoystickState state) {
+					JoystickState state, String source) {
 				System.out.print("Button change: [ ");
 				for(boolean b : buttonsChanged) System.out.print((b?1:0) + " ");
 				System.out.println(" ]");
 				System.out.println(state);
 			}
 			@Override
-			public void joystickMoved(boolean[] axesChanged, JoystickState state) {
+			public void joystickMoved(boolean[] axesChanged, JoystickState state, String source) {
 				System.out.print("Axis change: [ ");
 				for(boolean b : axesChanged) System.out.print((b?1:0) + " ");
 				System.out.println(" ]");
