@@ -3,6 +3,8 @@ package com.dgis.input.evdev.devices;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import com.dgis.input.evdev.EventDevice;
 import com.dgis.input.evdev.InputEvent;
@@ -45,13 +47,13 @@ public class EvdevJoystickFilter implements InputListener {
 	 * Holds the event codes for each joystick button, in order. That is, if
 	 * event code 288 is button one, it is the first entry here.
 	 */
-	private ArrayList<Short> buttonEventCodes = new ArrayList<Short>();
+	private ArrayList<Integer> buttonEventCodes = new ArrayList<Integer>();
 	
 	/**
 	 * Holds the event codes for each joystick axis, in order. That is, if
 	 * event code 0 is axis one, it is the first entry here.
 	 */
-	private ArrayList<Short> axisEventCodes = new ArrayList<Short>();
+	private ArrayList<Integer> axisEventCodes = new ArrayList<Integer>();
 	
 	private boolean[] buttonChanged, axisChanged;
 	
@@ -70,21 +72,17 @@ public class EvdevJoystickFilter implements InputListener {
 	}
 	
 	private void setupDevice() {
-		//////////TODO MAJOR MAJOR HACK///////////////////////////////
-		//////////TODO fix this once EventDevice supports this////////
+		Map<Integer, List<Integer>> supportedEvents = device.getSupportedEvents();
+		List<Integer> supportedAxes = supportedEvents.get((int)InputEvent.EV_ABS);
+		List<Integer> supportedKeys = supportedEvents.get((int)InputEvent.EV_KEY);
 		
-		int numAxes = 4;
-		int numButtons = 15;
-		/* For my trusty saitek. should be parsed from supported events for event type EV_KEY and EV_ABS */
-		for(short x=288; x<=299; x++)
-			buttonEventCodes.add(x);
-		axisEventCodes.add((short)0);
-		axisEventCodes.add((short)1);
-		axisEventCodes.add((short)6);
-		axisEventCodes.add((short)7);
-		axisEventCodes.add((short)16);
-		axisEventCodes.add((short)17);
-		/////////////////////END MASSIVE HACK/////////////////////////
+		int numAxes = supportedAxes == null ? 0 : supportedAxes.size();
+		int numButtons = supportedKeys == null ? 0 : supportedKeys.size();
+		
+		buttonEventCodes.addAll(supportedKeys);
+		axisEventCodes.addAll(supportedAxes);
+		
+		System.out.println("Detected "+buttonEventCodes.size()+" buttons and "+axisEventCodes.size()+" axes.");
 		
 		buttonChanged = new boolean[numButtons];
 		axisChanged = new boolean[numAxes];
@@ -127,7 +125,7 @@ public class EvdevJoystickFilter implements InputListener {
 		Arrays.fill(buttonChanged, false);
 	}
 	private void handleAxis(short axisNumber, int value) {
-		int axisNumber2 = axisEventCodes.indexOf(axisNumber);
+		int axisNumber2 = axisEventCodes.indexOf((int)axisNumber);
 		if(axisNumber2 <0) {
 			System.err.println("WARN: Couldn't find axis "+axisNumber+" in mapping! Perhaps device reported capabilities improperly!");
 			return;
@@ -138,7 +136,11 @@ public class EvdevJoystickFilter implements InputListener {
 	}
 	
 	private void handleButton(short buttonNumber, boolean buttonState) {
-		int buttonNumber2 = buttonEventCodes.indexOf(buttonNumber);
+		int buttonNumber2 = buttonEventCodes.indexOf((int)buttonNumber);
+		if(buttonNumber2 <0) {
+			System.err.println("WARN: Couldn't find button "+buttonNumber+" in mapping! Perhaps device reported capabilities improperly!");
+			return;
+		}
 		buttonChanged[buttonNumber2] = (buttonState != state.getButtonState(buttonNumber2)); //only flag as changed if _actually_ changed.
 		state.setButtonState(buttonNumber2, buttonState);
 	}
