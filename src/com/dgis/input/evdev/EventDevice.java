@@ -134,6 +134,8 @@ public class EventDevice implements IEventDevice{
 
 	private String deviceNameResponse;
 	
+	private HashMap<Integer, List<Integer>> supportedEvents = new HashMap<Integer, List<Integer>>();
+	
 	/**
 	 * Create an EventDevice by connecting to the provided device filename.
 	 * If the device file is accessible, open it and begin listening for events. 
@@ -159,12 +161,14 @@ public class EventDevice implements IEventDevice{
 		}
 		evdevVersionResponse = ioctlGetEvdevVersion(device);
 		byte[] devName = new byte[255];
-		if(ioctlGetDeviceName(device, devName, devName.length)) {
+		if(ioctlGetDeviceName(device, devName)) {
 			deviceNameResponse = new String(devName);
 		} else {
 			System.err.println("WARN: couldn't get device name: "+device);
 			deviceNameResponse = "Unknown Device";
 		}
+		
+		readSupportedEvents();
 		
 		FileInputStream fis = new FileInputStream(device);
 		deviceInput = fis.getChannel();
@@ -181,6 +185,48 @@ public class EventDevice implements IEventDevice{
 		readerThread.setDaemon(true); /* We don't want this thread to prevent the JVM from terminating */
 		
 		readerThread.start();
+	}
+
+	/**
+	 * Get supported events from device, and place into supportedEvents.
+	 * Adapted from evtest.c.
+	 */
+	private void readSupportedEvents() {
+		System.out.println("Detecting device capabilities...");
+		long[][] bit = new long[InputEvent.EV_MAX][NBITS(InputEvent.KEY_MAX)];
+		int[] abs = new int[5];
+		String[] absval = new String[]{ "Value", "Min  ", "Max  ", "Fuzz ", "Flat " };
+		ioctlEVIOCGBIT(device, bit[0], 0, bit[0].length);
+		for (int i = 0; i < InputEvent.EV_MAX; i++) {
+			if (testBit(bit[0], i)) {
+				System.out.printf("  Event type %d\n", i);
+				if (i==0) continue;
+				ioctlEVIOCGBIT(device, bit[i], i, InputEvent.KEY_MAX);
+				for (int j = 0; j < InputEvent.KEY_MAX; j++) 
+					if (testBit(bit[i], j)) {
+						System.out.printf("    Event code %d\n", j);
+						if (i == InputEvent.EV_ABS) {
+							ioctlEVIOCGABS(device, abs, j);
+							for (int k = 0; k < 5; k++)
+								if ((k < 3) || (abs[k]!=0))
+									System.out.printf("      %s %6d\n", absval[k], abs[k]);
+						}
+					}
+			}
+		}
+	}
+	
+	private boolean testBit(long[] array, int bit) {
+		return ((array[LONG(bit)] >>> OFF(bit)) & 1)!=0;
+	}
+	private int LONG(int x) {
+		return x/(64);
+	}
+	private int OFF(int x) {
+		return x%(64);
+	}
+	private int NBITS(int x) {
+		return ((((x)-1)/(8*8))+1);
 	}
 
 	/**
@@ -263,8 +309,7 @@ public class EventDevice implements IEventDevice{
 	 */
 	@Override
 	public Map<Integer, List<Integer>> getSupportedEvents() {
-		// TODO Auto-generated method stub
-		return new HashMap<Integer, List<Integer>>();
+		return supportedEvents;
 	}
 
 	/**
@@ -315,5 +360,7 @@ public class EventDevice implements IEventDevice{
 	////BEGIN JNI METHODS////
 	private native boolean ioctlGetID(String device, short[] resp);
 	private native int ioctlGetEvdevVersion(String device);
-	private native boolean ioctlGetDeviceName(String device, byte[] resp, int len);
+	private native boolean ioctlGetDeviceName(String device, byte[] resp);
+	private native boolean ioctlEVIOCGBIT(String device, long[] resp, int start, int stop);
+	private native boolean ioctlEVIOCGABS(String device, int[] resp, int axis);
 }

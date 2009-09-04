@@ -10,7 +10,7 @@ extern "C" {
 /*
  * Class:     com_dgis_input_evdev_EventDevice
  * Method:    ioctlGetID
- * Signature: (Ljava/lang/String;[S)V
+ * Signature: (Ljava/lang/String;[S)Z
  */
 JNIEXPORT jboolean JNICALL Java_com_dgis_input_evdev_EventDevice_ioctlGetID
   (JNIEnv *, jobject, jstring, jshortArray);
@@ -26,10 +26,26 @@ JNIEXPORT jint JNICALL Java_com_dgis_input_evdev_EventDevice_ioctlGetEvdevVersio
 /*
  * Class:     com_dgis_input_evdev_EventDevice
  * Method:    ioctlGetDeviceName
- * Signature: ([BI)V
+ * Signature: (Ljava/lang/String;[B)Z
  */
 JNIEXPORT jboolean JNICALL Java_com_dgis_input_evdev_EventDevice_ioctlGetDeviceName
-  (JNIEnv *, jobject, jstring, jbyteArray, jint);
+  (JNIEnv *, jobject, jstring, jbyteArray);
+
+/*
+ * Class:     com_dgis_input_evdev_EventDevice
+ * Method:    ioctlEVIOCGBIT
+ * Signature: (Ljava/lang/String;[JII)Z
+ */
+JNIEXPORT jboolean JNICALL Java_com_dgis_input_evdev_EventDevice_ioctlEVIOCGBIT
+  (JNIEnv *, jobject, jstring, jlongArray, jint, jint);
+
+/*
+ * Class:     com_dgis_input_evdev_EventDevice
+ * Method:    ioctlEVIOCGABS
+ * Signature: (Ljava/lang/String;[II)Z
+ */
+JNIEXPORT jboolean JNICALL Java_com_dgis_input_evdev_EventDevice_ioctlEVIOCGABS
+  (JNIEnv *, jobject, jstring, jintArray, jint);
 
 #ifdef __cplusplus
 }
