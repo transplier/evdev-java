@@ -270,7 +270,7 @@ public class EventDevice implements IEventDevice{
 			inputBuffer.flip();
 			
 			/* Delegate parsing to InputEvent.parse() */
-			return InputEvent.parse(inputBuffer.asShortBuffer());
+			return InputEvent.parse(inputBuffer.asShortBuffer(), device);
 		} catch (IOException e ) { 
 			return null;
 		}

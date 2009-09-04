@@ -792,6 +792,7 @@ public class InputEvent {
 	public /*__u16*/ short type;
 	public /*__u16*/ short code;
 	public /*__s32*/ int value;
+	public String source;
 	
 	/**
 	 * Parse an InputEvent out of a ShortBuffer.
@@ -799,7 +800,7 @@ public class InputEvent {
 	 * @return
 	 * @throws IOException
 	 */
-	public static InputEvent parse(ShortBuffer shortBuffer) throws IOException {
+	public static InputEvent parse(ShortBuffer shortBuffer, String source) throws IOException {
 		InputEvent e = new InputEvent();
 		short a,b,c,d;
 		a=shortBuffer.get();
@@ -817,8 +818,11 @@ public class InputEvent {
 		c=shortBuffer.get();
 		d=shortBuffer.get();
 		e.value = (d<<16) | c;
+		e.source = source;
 		return e;
 	}
+	
+	private InputEvent() {}
 	
 	@Override
 	public String toString() {
