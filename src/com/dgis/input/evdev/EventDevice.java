@@ -390,21 +390,21 @@ public class EventDevice implements IEventDevice{
 	native boolean ioctlEVIOCGABS(String device, int[] resp, int axis);
 }
 
-class InputAxisParametersImpl implements InputAxisParameters{
+class InputAxisParametersImpl implements InputAxisParameters {
 
 	private EventDevice device;
 	private int axis;
-	
+
 	private int value, min, max, fuzz, flat;
-	
+
 	public InputAxisParametersImpl(EventDevice device, int axis) {
 		this.device = device;
 		this.axis = axis;
 		readStatus();
 	}
-	
+
 	/**
-	 * Repopulate values stored in this class with values read from the device. 
+	 * Repopulate values stored in this class with values read from the device.
 	 */
 	private void readStatus() {
 		int[] resp = new int[5];
@@ -415,66 +415,87 @@ class InputAxisParametersImpl implements InputAxisParameters{
 		fuzz = resp[3];
 		flat = resp[4];
 	}
-	
+
 	/**
-	 * Repopulate values stored in the device with values read from this class. 
+	 * Repopulate values stored in the device with values read from this class.
 	 */
 	private void writeStatus() {
 		throw new NotImplementedException();
 	}
 
 	public int getValue() {
-		readStatus();
-		return value;
+		synchronized (this) {
+			readStatus();
+			return value;
+		}
 	}
 
 	public void setValue(int value) {
-		this.value = value;
-		writeStatus();
+		synchronized (this) {
+			this.value = value;
+			writeStatus();
+		}
 	}
 
 	public int getMin() {
-		readStatus();
-		return min;
+		synchronized (this) {
+			readStatus();
+			return min;
+		}
 	}
 
 	public void setMin(int min) {
-		this.min = min;
-		writeStatus();
+		synchronized (this) {
+			this.min = min;
+			writeStatus();
+		}
 	}
 
 	public int getMax() {
-		readStatus();
-		return max;
+		synchronized (this) {
+			readStatus();
+			return max;
+		}
 	}
 
 	public void setMax(int max) {
-		this.max = max;
-		writeStatus();
+		synchronized (this) {
+			this.max = max;
+			writeStatus();
+		}
 	}
 
 	public int getFuzz() {
-		readStatus();
-		return fuzz;
+		synchronized (this) {
+			readStatus();
+			return fuzz;
+		}
 	}
 
 	public void setFuzz(int fuzz) {
-		this.fuzz = fuzz;
-		writeStatus();
+		synchronized (this) {
+			this.fuzz = fuzz;
+			writeStatus();
+		}
 	}
 
 	public int getFlat() {
-		readStatus();
-		return flat;
+		synchronized (this) {
+			readStatus();
+			return flat;
+		}
 	}
 
 	public void setFlat(int flat) {
-		this.flat = flat;
-		writeStatus();
+		synchronized (this) {
+			this.flat = flat;
+			writeStatus();
+		}
 	}
 
 	@Override
 	public String toString() {
-		return "Value: "+getValue()+ " Min: "+getMin()+ " Max: "+getMax()+" Fuzz: "+getFuzz()+" Flat: "+getFlat();
+		return "Value: " + getValue() + " Min: " + getMin() + " Max: "
+				+ getMax() + " Fuzz: " + getFuzz() + " Flat: " + getFlat();
 	}
 }
