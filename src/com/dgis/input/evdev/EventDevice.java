@@ -11,8 +11,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 /*
  * Copyright (C) 2009 Giacomo Ferrari
  * This file is part of evdev-java.
@@ -424,7 +422,7 @@ class InputAxisParametersImpl implements InputAxisParameters {
 	 * Repopulate values stored in the device with values read from this class.
 	 */
 	private void writeStatus() {
-		throw new NotImplementedException();
+		throw new Error("Not implemented yet!");
 	}
 
 	public int getValue() {
