@@ -25,5 +25,10 @@ package com.dgis.input.evdev;
  */
 
 public interface InputListener {
+	/**
+	 * This method is called by a EventDevice when an event is reported by
+	 * the event device under its watch. 
+	 * @param e The event details.
+	 */
 	public void event(InputEvent e);
 }

@@ -797,7 +797,7 @@ public class InputEvent {
 	/**
 	 * Parse an InputEvent out of a ShortBuffer.
 	 * @param shortBuffer
-	 * @return
+	 * @return the parsed InputEvent
 	 * @throws IOException
 	 */
 	public static InputEvent parse(ShortBuffer shortBuffer, String source) throws IOException {

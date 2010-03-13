@@ -32,33 +32,63 @@ public class JoystickState {
 	private int axisMinValue[];
 	private int axisMaxValue[];
 	
-	public JoystickState(int numButtons, int numAxes) {
+	JoystickState(int numButtons, int numAxes) {
 		buttonStates = new boolean[numButtons];
 		axisStates = new int[numAxes];
 		axisMinValue = new int[numAxes];
 		axisMaxValue = new int[numAxes];
 	}
 
+	/**
+	 * Gets the number of buttons reported by this joystick.
+	 * @return The number of buttons reported.
+	 */
 	public int getNumButtons() {
 		return numButtons;
 	}
 
+	/**
+	 * Gets the number of axes reported by this joystick.
+	 * @return The number of axes reported.
+	 */
 	public int getNumAxes() {
 		return numAxes;
 	}
 
+	/**
+	 * Queries the state of a joystick button.
+	 * @param button The button number to check. Valid ranges are 0 to getNumButtons()-1.
+	 * @return The state of the button.
+	 */
 	public boolean getButtonState(int button) {
 		return buttonStates[button];
 	}
 
+	/**
+	 * Queries the state of a joystick axis.
+	 * @param axis The axis number to check. Valid ranges are 0 to getNumAxes()-1.
+	 * @return The state of the axis, typically in the range +-32768.
+	 * @see JoystickState#getAxisMaxValue(int)
+	 * @see JoystickState#getAxisMinValue(int)
+	 */
 	public int getAxisState(int axis) {
 		return axisStates[axis];
 	}
 
+	/**
+	 * Queries the smallest value ever seen on a given axis for calibration purposes. 
+	 * @param axis The axis to check. Valid ranges are 0 to getNumButtons()-1.
+	 * @return The smallest value ever seen on this axis.
+	 */
 	public int getAxisMinValue(int axis) {
 		return axisMinValue[axis];
 	}
 
+	/**
+	 * Queries the largest value ever seen on a given axis for calibration purposes. 
+	 * @param axis The axis to check. Valid ranges are 0 to getNumButtons()-1.
+	 * @return The largest value ever seen on this axis.
+	 */
 	public int getAxisMaxValue(int axis) {
 		return axisMaxValue[axis];
 	}
