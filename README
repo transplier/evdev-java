@@ -1,0 +1,71 @@
+			[evdev-java]
+			http://github.com/progman32/evdev-java
+
+WHAT IS IT
+
+This is a java API for the Linux evdev system. Evdev (event device) is used
+by the kernel to provide "input events" from input devices to userspace. Input
+devices include anything from keyboard and mice to joysticks to hardware buttons
+(power, hibernate, laptop buttons), even soundcards (some recent ones generate
+events upon a jack being plugged).
+
+RATIONALE
+
+One of my free-time projects is creating a full-featured Car PC system. Among
+other things, the system needed a solid method of getting input from many
+devices. Some were obvious (keyboard, touch-screen), while others not so much
+(custom panel buttons, sensors, etc). Since most devices already had an evdev
+interface in the kernel, it was obvious that my system better take advantage
+of this fact. I could not find any Java interface to evdev, I decided to write
+my own, and here is a result.
+
+GENERAL LAYOUT
+
+The system is simple in operation. At the core lies EventDevice, which
+binds to a specified evdev device (/dev/input/event*) and provides events
+to any InputListener registered with it. The java NIO framework is used for
+efficiency. Unfortunately, Java is unable to execute some IOCTL commands 
+necessary to use the kernel's evdev incerface, so a small native library was
+written to take care of those.
+
+DRIVERS/FILTERS
+
+Raw InputEvents are fine for accomplishing more advanced features or for
+supporting a wide range of devices, but oftentimes a simpler interface is
+desired (along with a reduced risk of error, yay for compiler error messages!).
+Thus, evdev-java provides a driver/filter system. These implementations sit on
+top of EventDevice and forward (and generate) device-specific events. At the
+moment, only one filter exists: EvdevJoystickFilter. Along with the usual
+functions provided by EventDevice, EvdevJoystickFilter services
+JoystickListener implementations, which simply take button state changed and
+axis moved events.
+
+INSTALLATION
+
+Simply import the java files into your own project - evdev-java is so small a
+full-fledged JAR is overkill. The only particular step to take is to build the
+native library - simply execute compile.sh under native/. This requires a
+working GCC and a correct linux kernel header install (but that's about it).
+Make sure to place the libevdev-java.so in a place where the JVM can find it.
+Ideally, set java.library.path to wherever the .so is, something like this:
+java -Djava.library.path=<path to directory holding .so> <yourprogram>.
+
+MORE DOCUMENTATION
+
+For the moment, documentation is maintained at the GitHub wiki. Examples can/will
+be found there, as well as under src-test. The API is also documented in JavaDoc.
+ 
+LICENSE
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ 
