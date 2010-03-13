@@ -38,6 +38,10 @@ import java.util.Map;
  */
 
 interface IEventDevice {
+	
+	public static final int MAJOR_VER = 0;
+	public static final int MINOR_VER = 5;
+	
 	/**
 	 * @return The version of Evdev reported by the kernel.
 	 */
